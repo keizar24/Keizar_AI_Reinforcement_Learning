@@ -1,6 +1,6 @@
 import numpy as np
 import gym
-from V1_to_KeizerEnv import KeizerEnv
+from V1_to_KeizarEnv import KeizarEnv
 
 
 def max_action(Q, state, actions=None):
@@ -13,11 +13,12 @@ def max_action(Q, state, actions=None):
 
 
 def get_state_from_prev(prev_state):
+    # TODO: Connect to RE
     return []
 
 
 if __name__ == '__main__':
-    env = KeizerEnv()
+    env = KeizarEnv()
     env._max_episode_steps = 1000
     n_games = 1
     alpha = 0.1

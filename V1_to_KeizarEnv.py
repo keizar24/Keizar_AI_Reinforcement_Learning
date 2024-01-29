@@ -97,7 +97,7 @@ def get_piece(piece_id):
     return
 
 
-class KeizerEnv(gym.Env):
+class KeizarEnv(gym.Env):
     def __init__(
             self,
             player_color=WHITE,
@@ -129,8 +129,8 @@ class KeizerEnv(gym.Env):
         self.seed()
         self.reset()
         register(
-            id="gym_keizer/KeizerEnv-v0",
-            entry_point="gym_keizer.envs:KeizerEnv",
+            id="gym_keizar/KeizarEnv-v0",
+            entry_point="gym_keizar.envs:KeizarEnv",
             max_episode_steps=300,
         )
 
@@ -161,8 +161,8 @@ class KeizerEnv(gym.Env):
         self.current_player = WHITE
         self.saved_states = defaultdict(lambda: 0)
         self.move_count = 0
-        self.white_keizer = 0
-        self.black_keizer = 0
+        self.white_keizar = 0
+        self.black_keizar = 0
         self.possible_moves = self.get_possible_moves(state=self.state, player=WHITE)
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
@@ -219,7 +219,7 @@ class KeizerEnv(gym.Env):
         opponent_player = self.switch_player()
         self.possible_moves = self.get_possible_moves(player=opponent_player)
         # check if there are no possible_moves for opponent
-        if (not self.possible_moves and self.on_keizer(state=self.state, player=self.opponent_player)) \
+        if (not self.possible_moves and self.on_keizar(state=self.state, player=self.opponent_player)) \
                 or self.is_win(player=opponent_player):
             self.done = True
             reward += WIN_REWARD
@@ -236,7 +236,7 @@ class KeizerEnv(gym.Env):
             self.possible_moves = self.get_possible_moves(player=agent_player)
             reward -= opp_reward
             # check if there are no possible_moves for opponent
-            if (not self.possible_moves and self.on_keizer(state=self.state, player=agent_player)) \
+            if (not self.possible_moves and self.on_keizar(state=self.state, player=agent_player)) \
                     or self.is_win(player=agent_player):
                 self.done = True
                 reward += LOSS_REWARD
@@ -423,19 +423,19 @@ class KeizerEnv(gym.Env):
         encoding = "".join([mapping[val] for val in self.state.ravel()])
         return encoding
 
-    def on_keizer(self, state, player):
-        # White is on the keizer tile
+    def on_keizar(self, state, player):
+        # White is on the keizar tile
         if state[3, 3] > 0:
             return player == WHITE
-        # Black is on the keizer tile
+        # Black is on the keizar tile
         elif state[3, 3] < 0:
             return player == WHITE
-        # Neither player dominates the keizer board
+        # Neither player dominates the keizar board
         else:
             return False
 
     def is_win(self, player):
         if player == WHITE:
-            return self.white_keizer == 3
+            return self.white_keizar == 3
         else:
-            return self.black_keizer == 3
+            return self.black_keizar == 3

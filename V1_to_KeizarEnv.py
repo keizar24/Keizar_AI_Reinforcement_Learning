@@ -1,6 +1,9 @@
+import random
 import sys
 from collections import defaultdict
 from copy import copy
+import requests
+import json
 
 import gym
 import numpy as np
@@ -44,10 +47,8 @@ BLACK = "BLACK"
 SIMPLE_MOVE = 1
 CAPTURE_MOVE = 5
 KEIZER_MOVE = 20
-WIN_REWARD = 100
-LOSS_REWARD = -100
-INVALID_ACTION_REWARD = -2
-VALID_ACTION_REWARD = 2
+WIN_REWARD = 1000
+LOSS_REWARD = -1000
 
 # Need to get from HTTP
 DEFAULT_BOARD = np.array(
@@ -67,34 +68,31 @@ DEFAULT_BOARD = np.array(
 RESIGN = "RESIGN"
 
 
-# AGENT POLICY
-# ------------
-def make_random_policy(np_random, bot_player):
-    def random_policy(env):
-        # moves = env.get_possible_moves(player=bot_player)
-        moves = env.possible_moves
-        # No moves left
-        if len(moves) == 0:
-            return "resign"
-        else:
-            idx = np.random.choice(np.arange(len(moves)))
-            return moves[idx]
-
-    return random_policy
-
-
 # CHESS GYM ENVIRONMENT CLASS
 # ---------------------------
-def get_move_from_engine(state, player):
-    return []
+
+def parseLocation(loc):
+    return [loc >> 32, loc & 15]
 
 
-def move_reward(move):
-    return 0
+def parseJson(text):
+    data = json.loads(text)
+    # 转换为 numpy 数组
+    result = [parseLocation(item['source']) + parseLocation(item['dest']) + [int(item['isCapture'])] for item in
+              data]
+    return np.array(result)
 
 
-def get_piece(piece_id):
-    return
+def get_state_from_prev(prev_state, player):
+    url = f'http://localhost:8080/moves/{player.lower()}'
+
+    data = {
+        'board': prev_state.tolist(),
+    }
+    json_data = json.dumps(data)
+
+    response = requests.post(url, data=json_data, headers={'Content-Type': 'application/json'})
+    return parseJson(response.text)
 
 
 class KeizarEnv(gym.Env):
@@ -125,30 +123,22 @@ class KeizarEnv(gym.Env):
         self.opponent = opponent  # define opponent
         self.opponent_policy = None
 
+        self.state = self.initial_state
+        self.prev_state = None
+        self.done = False
+        self.current_player = WHITE
+        self.move_count = 0
+        self.white_keizar = 0
+        self.black_keizar = 0
+        self.possible_moves = None
+
         # reset and build state
-        self.seed()
         self.reset()
         register(
             id="gym_keizar/KeizarEnv-v0",
             entry_point="gym_keizar.envs:KeizarEnv",
             max_episode_steps=300,
         )
-
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-
-        # Update the random policy if needed
-        if isinstance(self.opponent, str):
-            if self.opponent == "random":
-                self.opponent_policy = make_random_policy(self.np_random, self.player_2)
-            elif self.opponent == "none":
-                self.opponent_policy = None
-            else:
-                raise error.Error(f"Unrecognized opponent policy {self.opponent}")
-        else:
-            self.opponent_policy = self.opponent
-
-        return [seed]
 
     def reset(self):
         """
@@ -159,24 +149,20 @@ class KeizarEnv(gym.Env):
         self.prev_state = None
         self.done = False
         self.current_player = WHITE
-        self.saved_states = defaultdict(lambda: 0)
         self.move_count = 0
         self.white_keizar = 0
         self.black_keizar = 0
-        self.possible_moves = self.get_possible_moves(state=self.state, player=WHITE)
+        self.possible_moves = get_state_from_prev(self.state, player=WHITE)
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
-            white_first_move = self.opponent_policy(self)
-            white_first_action = self.move_to_action(white_first_move)
             # make move
-            # self.state, _, _, _ = self.step(white_first_action)
-            self.state, _, _ = self.player_move(white_first_action)
+            self.state, _, _, _ = self.player_move(BLACK)
             self.move_count += 1
             self.current_player = BLACK
-            self.possible_moves = self.get_possible_moves(state=self.state, player=BLACK)
+            self.possible_moves = get_state_from_prev(self.state, player=BLACK)
         return self.state
 
-    def step(self, action):
+    def step(self):
         """
         Run one timestep of the environment's dynamics. When end of episode
         is reached, reset() should be called to reset the environment's internal state.
@@ -193,14 +179,6 @@ class KeizarEnv(gym.Env):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        # validate action
-        assert self.action_space.contains(action), "ACTION ERROR {}".format(action)
-
-        # action invalid in current state
-        if action not in self.possible_actions:
-            reward = INVALID_ACTION_REWARD
-            return self.state, reward, self.done, self.info
-
         # Game is done
         if self.done:
             return (
@@ -210,59 +188,24 @@ class KeizarEnv(gym.Env):
                 self.info,
             )
         # valid action reward
-        reward = INVALID_ACTION_REWARD
+        reward = 0
         # make move
-        self.state, move_reward, self.done = self.player_move(action)
+        self.state, move, move_reward, actions = self.player_move(self.player)
         reward += move_reward
 
         # opponent play
         opponent_player = self.switch_player()
-        self.possible_moves = self.get_possible_moves(player=opponent_player)
-        # check if there are no possible_moves for opponent
-        if (not self.possible_moves and self.on_keizar(state=self.state, player=self.opponent_player)) \
-                or self.is_win(player=opponent_player):
-            self.done = True
-            reward += WIN_REWARD
+        self.state, _, _, _ = self.player_move(opponent_player)
+
         if self.done:
-            return self.state, reward, self.done, self.info
+            return self.state, reward, self.done, self.info, move, None
 
-        # Bot Opponent play
-        if self.opponent_policy:
-            opponent_move = self.opponent_policy(self)
-            opponent_action = self.move_to_action(opponent_move)
-            # make move
-            self.state, opp_reward, self.done = self.player_move(opponent_action)
-            agent_player = self.switch_player()
-            self.possible_moves = self.get_possible_moves(player=agent_player)
-            reward -= opp_reward
-            # check if there are no possible_moves for opponent
-            if (not self.possible_moves and self.on_keizar(state=self.state, player=agent_player)) \
-                    or self.is_win(player=agent_player):
-                self.done = True
-                reward += LOSS_REWARD
-
-        # increment count on WHITE
-        if self.current_player == WHITE:
-            self.move_count += 1
-
-        return self.state, reward, self.done, None, self.info
+        return self.state, reward, self.done, self.info, move, actions
 
     def switch_player(self):
         other_player = self.get_other_player(self.current_player)
         self.current_player = other_player
         return other_player
-
-    @property
-    def possible_moves(self):
-        return self._possible_moves
-
-    @possible_moves.setter
-    def possible_moves(self, moves):
-        self._possible_moves = moves
-
-    @property
-    def possible_actions(self):
-        return [self.move_to_action(m) for m in self.possible_moves]
 
     @property
     def info(self):
@@ -285,28 +228,36 @@ class KeizarEnv(gym.Env):
     def current_player_is_black(self):
         return not self.current_player_is_white
 
-    def get_other_player(self, player):
+    @staticmethod
+    def get_other_player(player):
         if player == WHITE:
             return BLACK
         return WHITE
 
-    def player_move(self, action):
+    def player_move(self, player):
         """
         Returns (state, reward, done)
         """
-        # Resign
-        if self.is_resignation(action):
-            return self.state, LOSS_REWARD, True
         # Play
-        move = self.action_to_move(action)
-        new_state, reward = self.next_state(self.state, self.current_player, move, commit=True)
+        moves = get_state_from_prev(self.state, player)
+        print(moves)
+        if moves.size == 0:
+            if self.on_keizar(self.state, player):
+                reward = WIN_REWARD
+                self.done = True
+            else:
+                reward = LOSS_REWARD
+                self.done = True
+            return self.state, None, reward, None
+        # Randomly choose one move
+        move = random.choice(moves)
+        new_state, reward = self.next_state(self.state, self.current_player, move)
         # Render
         if self.log:
             print(" " * 10, ">" * 10, self.current_player)
-        return new_state, reward, False
+        return new_state, move, reward, moves
 
-    @staticmethod
-    def next_state(state, player, move, commit=False):
+    def next_state(self, state, player, move):
         """
         Return the next state given a move
         -------
@@ -316,13 +267,13 @@ class KeizarEnv(gym.Env):
         reward = 0
 
         # implement move
-        _from, _to = move
-        piece_to_move = copy(new_state[_from[0], _from[1]])
-        new_state[_from[0], _from[1]] = 0
-        new_state[_to[0], _to[1]] = piece_to_move
+        [fx, fy, tx, ty, _] = move
+        piece_to_move = copy(new_state[fx, fy])
+        new_state[fx, fy] = 0
+        new_state[tx, ty] = piece_to_move
 
         # Reward
-        reward += move_reward(move)
+        reward += self.move_reward(move, player)
 
         return new_state, reward
 
@@ -348,14 +299,22 @@ class KeizarEnv(gym.Env):
         if mode != "human":
             return outfile
 
-    @staticmethod
-    def move_to_action(move):
-        if type(move) is list:
-            _from = move[0][0] * 8 + move[0][1]
-            _to = move[1][0] * 8 + move[1][1]
-            return _from * 64 + _to
-        if move == RESIGN:
-            return 64 * 64
+    def move_reward(self, move, player):
+        [_, _, tx, ty, isCapture] = move
+        reward = 0
+        if isCapture == 1:
+            reward += CAPTURE_MOVE
+        if (tx, ty) == (3, 4):
+            reward += KEIZER_MOVE
+            if player == WHITE:
+                self.white_keizar += 1
+                self.black_keizar = 0
+            elif player == BLACK:
+                self.black_keizar += 1
+                self.white_keizar = 0
+        if not isCapture and not (tx, ty) == (3, 4):
+            reward += SIMPLE_MOVE
+        return reward
 
     @staticmethod
     def action_to_move(action):
@@ -379,41 +338,6 @@ class KeizarEnv(gym.Env):
         string = f"{piece_id}{_from_str}{'x' if capture else ''}{_to_str}"
         return string
 
-    def get_possible_actions(self):
-        moves = self.get_possible_moves(player=self.current_player)
-        return [self.move_to_action(move) for move in moves]
-
-    def get_possible_moves(self, state=None, player=None):
-        if state is None:
-            state = self.state
-        if player is None:
-            player = self.current_player
-        return get_move_from_engine(state, player)
-
-    @staticmethod
-    def is_piece_from_player(player, state, square):
-        piece_id = state[square[0], square[1]]
-        if piece_id > 0:
-            color = WHITE
-        elif piece_id < 0:
-            color = BLACK
-        else:
-            color = None
-        return color == player
-
-    def is_piece_from_other_player(self, player, state, square):
-        return self.is_piece_from_player(self.get_other_player(player), state, square)
-
-    @staticmethod
-    def is_resignation(action):
-        return False
-
-    @staticmethod
-    def player_to_int(player):
-        if player == WHITE:
-            return 1
-        return -1
-
     @staticmethod
     def square_is_on_board(square):
         return not (square[0] < 0 or square[0] > 7 or square[1] < 0 or square[1] > 7)
@@ -423,12 +347,13 @@ class KeizarEnv(gym.Env):
         encoding = "".join([mapping[val] for val in self.state.ravel()])
         return encoding
 
-    def on_keizar(self, state, player):
+    @staticmethod
+    def on_keizar(state, player):
         # White is on the keizar tile
-        if state[3, 3] > 0:
+        if state[4, 3] > 0:
             return player == WHITE
         # Black is on the keizar tile
-        elif state[3, 3] < 0:
+        elif state[4, 3] < 0:
             return player == WHITE
         # Neither player dominates the keizar board
         else:

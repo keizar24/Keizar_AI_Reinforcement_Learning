@@ -1,20 +1,20 @@
 import numpy as np
-import gym
 from V1_to_KeizarEnv import KeizarEnv
 
 
 def max_action(Q, state, actions=None):
-    print("here")
+    print(actions)
+    max_action = []
+    max_value = 0
     if actions is None:
-        actions = []
-    values = np.array([Q[tuple(state), a] for a in actions])
-    action = np.argmax(values)
-    return action
-
-
-def get_state_from_prev(prev_state):
-    # TODO: Connect to RE
-    return []
+        return []
+    for action in actions:
+        if (str(state), str(action)) not in Q.keys():
+            Q[str(state), str(action)] = np.random.random()
+        elif Q[str(state), str(action)] > max_value:
+            max_action = action
+            max_value = Q[str(state), str(action)]
+    return max_action
 
 
 if __name__ == '__main__':
@@ -36,16 +36,16 @@ if __name__ == '__main__':
             print('episode ', i, 'score ', score, 'epsilon %.3f', eps)
         score = 0
         while not done:
-            action = np.random.choice(env.action_space.n) if np.random.random() < eps else max_action(Q, state)
-            obs_, reward, done, info = env.step(action)
-            state_ = get_state_from_prev(state)
+            p = np.random.random()
+            state_, reward, done, info, action, actions = env.step()
+            print(reward)
             score += reward
-            action_ = max_action(Q, state_)
-            if not Q[state, action]:
-                Q[state, action] = 0
-            if not Q[state_, action_]:
-                Q[state_, action_] = 0
-            Q[state, action] = Q[state, action] + alpha * (reward + gamma * Q[state_, action_] - Q[state, action])
+            action_ = max_action(Q, state_, actions)
+            if (str(state), str(action)) not in Q.keys():
+                Q[str(state), str(action)] = np.random.random()
+            if (str(state_), str(action_)) not in Q.keys():
+                Q[str(state_), str(action_)] = np.random.random()
+            Q[str(state), str(action)] = Q[str(state), str(action)] + alpha * (reward + gamma * Q[str(state_), str(action_)] - Q[str(state), str(action)])
             state = state_
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
@@ -53,5 +53,7 @@ if __name__ == '__main__':
     mean_rewards = np.zeros(n_games)
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
+    print(mean_rewards)
+    print(Q)
     # plt.plot(mean_rewards)
     # plt.savefig('mountain_car.png')

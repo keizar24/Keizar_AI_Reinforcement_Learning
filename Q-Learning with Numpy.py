@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 
 def max_action(Q, state, actions=None):
-    print(actions)
     max_action = []
     max_value = 0
     if actions is None:
@@ -41,7 +40,6 @@ if __name__ == '__main__':
         while not done:
             p = np.random.random()
             state_, reward, done, info, action, actions = env.step()
-            print(reward)
             score += reward
             action_ = max_action(Q, state_, actions)
             if (str(state), str(action)) not in Q.keys():

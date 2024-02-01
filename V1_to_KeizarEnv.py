@@ -84,6 +84,8 @@ def parseJson(text):
 
 
 session = requests.Session()
+
+
 def get_state_from_prev(prev_state, player):
     url = f'http://localhost:49152/moves/{player.lower()}'
 
@@ -253,9 +255,10 @@ class KeizarEnv(gym.Env):
         # Randomly choose one move
         move = random.choice(moves)
         new_state, reward = self.next_state(self.state, self.current_player, move)
+
         # Render
-        if self.log:
-            print(" " * 10, ">" * 10, self.current_player)
+        # if self.log:
+        #     print(" " * 10, ">" * 10, self.current_player)
         return new_state, move, reward, moves
 
     def next_state(self, state, player, move):
@@ -313,40 +316,11 @@ class KeizarEnv(gym.Env):
             elif player == BLACK:
                 self.black_keizar += 1
                 self.white_keizar = 0
+        if self.is_win() == player:
+            reward += WIN_REWARD
         if not isCapture and not (tx, ty) == (3, 4):
             reward += SIMPLE_MOVE
         return reward
-
-    @staticmethod
-    def action_to_move(action):
-        if action >= 64 * 64:
-            _action = action - 64 * 64
-            if _action == 0:
-                return RESIGN
-        _from, _to = action // 64, action % 64
-        x0, y0 = _from // 8, _from % 8
-        x1, y1 = _to // 8, _to % 8
-        return [np.array([x0, y0], dtype=np.int8), np.array([x1, y1], dtype=np.int8)]
-
-    def move_to_string(self, move):
-        _from, _to = move
-        rows = list(reversed("12345678"))
-        cols = "abcdefgh"
-        piece_id = self.state[_from[0], _from[1]]
-        capture = self.state[_to[0], _to[1]] != 0
-        _from_str = cols[_from[1]] + rows[_from[0]]
-        _to_str = cols[_to[1]] + rows[_to[0]]
-        string = f"{piece_id}{_from_str}{'x' if capture else ''}{_to_str}"
-        return string
-
-    @staticmethod
-    def square_is_on_board(square):
-        return not (square[0] < 0 or square[0] > 7 or square[1] < 0 or square[1] > 7)
-
-    def encode_state(self):
-        mapping = "0ABCDEFfedcba"
-        encoding = "".join([mapping[val] for val in self.state.ravel()])
-        return encoding
 
     @staticmethod
     def on_keizar(state, player):
@@ -355,13 +329,17 @@ class KeizarEnv(gym.Env):
             return player == WHITE
         # Black is on the keizar tile
         elif state[4, 3] < 0:
-            return player == WHITE
+            return player == BLACK
         # Neither player dominates the keizar board
         else:
             return False
 
-    def is_win(self, player):
-        if player == WHITE:
-            return self.white_keizar == 3
+    def is_win(self):
+        if self.white_keizar == 3:
+            self.done = True
+            return WHITE
+        elif self.black_keizar == 3:
+            self.done = True
+            return BLACK
         else:
-            return self.black_keizar == 3
+            return None

@@ -53,14 +53,14 @@ LOSS_REWARD = -1000
 # Need to get from HTTP
 DEFAULT_BOARD = np.array(
     [
-        [-6, -6, -6, -6, -6, -6, -6, -6],
-        [-6, -6, -6, -6, -6, -6, -6, -6],
-        [0] * 8,
-        [0] * 8,
-        [0] * 8,
-        [0] * 8,
         [6, 6, 6, 6, 6, 6, 6, 6],
         [6, 6, 6, 6, 6, 6, 6, 6],
+        [0] * 8,
+        [0] * 8,
+        [0] * 8,
+        [0] * 8,
+        [-6, -6, -6, -6, -6, -6, -6, -6],
+        [-6, -6, -6, -6, -6, -6, -6, -6],
     ],
     dtype=np.int8,
 )
@@ -83,15 +83,16 @@ def parseJson(text):
     return np.array(result)
 
 
+session = requests.Session()
 def get_state_from_prev(prev_state, player):
-    url = f'http://localhost:8080/moves/{player.lower()}'
+    url = f'http://localhost:49152/moves/{player.lower()}'
 
     data = {
         'board': prev_state.tolist(),
     }
     json_data = json.dumps(data)
 
-    response = requests.post(url, data=json_data, headers={'Content-Type': 'application/json'})
+    response = session.post(url, data=json_data, headers={'Content-Type': 'application/json'})
     return parseJson(response.text)
 
 
@@ -240,7 +241,7 @@ class KeizarEnv(gym.Env):
         """
         # Play
         moves = get_state_from_prev(self.state, player)
-        print(moves)
+        # print(moves)
         if moves.size == 0:
             if self.on_keizar(self.state, player):
                 reward = WIN_REWARD

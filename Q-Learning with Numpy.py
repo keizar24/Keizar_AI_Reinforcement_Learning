@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     env = KeizarEnv()
     env._max_episode_steps = 1000
-    n_games = 10
+    n_games = 50
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
@@ -26,8 +26,8 @@ if __name__ == '__main__':
             p = np.random.random()
             state_, reward, done, info, action, actions = env.step()
             score += reward
-            action_ = env.max_action(state_, actions, eps=False)
-            env.undate_Q_table(state, action, reward, state_, action_, alpha, gamma)
+            action_ = env.curr_max_action(actions)
+            env.undate_Q_table(state, action, action_ ,reward, alpha, gamma)
             state = state_
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01

@@ -207,22 +207,22 @@ class KeizarEnv(gym.Env):
 
         return self.state, reward, self.done, self.info, move, actions
 
-    def max_action(self, state, actions=None, eps=False):
+    def curr_max_action(self, actions=None, eps=False):
         greddy_level = 0.9
         rand = np.random.random()
         max_action = []
+        if actions is None:
+            return []
         if rand > greddy_level and eps:
-            max_action = np.random.choice(actions)
+            max_action = actions[np.random.choice(actions.shape[0])]
         else:
             max_value = 0
-            if actions is None:
-                return []
             for action in actions:
-                if (str(state), str(action)) not in self.Q.keys():
-                    self.Q[str(state), str(action)] = np.random.random()
-                if self.Q[str(state), str(action)] > max_value:
+                if (str(), str(action)) not in self.Q.keys():
+                    self.Q[str(), str(action)] = np.random.random()
+                if self.Q[str(), str(action)] > max_value:
                     max_action = action
-                    max_value = self.Q[str(state), str(action)]
+                    max_value = self.Q[str(), str(action)]
         return max_action
 
     def player_move(self, player):
@@ -241,7 +241,7 @@ class KeizarEnv(gym.Env):
                 self.done = True
             return self.state, None, reward, None
         # Randomly choose one move
-        move = random.choice(moves)
+        move = self.curr_max_action(moves, True)
         new_state, reward = self.next_state(self.state, self.current_player, move)
 
         # Render
@@ -269,13 +269,22 @@ class KeizarEnv(gym.Env):
 
         return new_state, reward
 
-    def undate_Q_table(self, state, action, action_, state_, reward, alpha, gamma, p=0.1):
-        if (str(state), str(action)) not in self.Q.keys():
-            self.Q[str(state), str(action)] = p
-        if (str(state_), str(action_)) not in self.Q.keys():
-            self.Q[str(state_), str(action_)] = p
-        self.Q[str(state), str(action)] = self.Q[str(state), str(action)] + alpha * (
-                reward + gamma * self.Q[str(state_), str(action_)] - self.Q[str(state), str(action)])
+    def undate_Q_table(self, prev_state, action, action_, reward, alpha, gamma, p=0.1):
+        # if current state is not in Q table, initialize it with a random number
+        if (str(prev_state), str(action)) not in self.Q.keys():
+            self.Q[str(prev_state), str(action)] = p
+
+        # if next state is not in Q table, initialize it with a random number
+        if (str(self.state), str(action_)) not in self.Q.keys():
+            self.Q[str(self.state), str(action_)] = p
+
+        # update Q table
+        oldQ = self.Q[str(prev_state), str(action)]
+        newQ = self.Q[str(self.state), str(action_)]
+
+        # print("oldQ", oldQ, "newQ", newQ, "reward", reward, "alpha", alpha, "gamma", gamma)
+
+        self.Q[str(prev_state), str(action)] = oldQ + alpha * (reward + (gamma * newQ) - oldQ)
 
     def get_Q_table(self):
         return self.Q
@@ -342,7 +351,6 @@ class KeizarEnv(gym.Env):
             return BLACK
         else:
             return None
-
 
     def switch_player(self):
         other_player = self.get_other_player(self.current_player)

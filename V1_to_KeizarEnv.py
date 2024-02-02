@@ -86,8 +86,9 @@ def parseJson(text):
 session = requests.Session()
 
 
-def get_moves_from_state(state, player):
-    url = f'http://localhost:49152/moves/{player.lower()}'
+def get_move(state, player, type='train'):
+    url = f'http://localhost:49152/moves/{player.lower()}' \
+        if type == 'train' else f'http://localhost:49152/moves/{player.lower()}'  # TODO: new url for testing
 
     data = {
         'board': state.tolist(),
@@ -96,7 +97,6 @@ def get_moves_from_state(state, player):
 
     response = session.post(url, data=json_data, headers={'Content-Type': 'application/json'})
     return parseJson(response.text)
-
 
 class KeizarEnv(gym.Env):
     def __init__(
@@ -415,3 +415,16 @@ class KeizarEnv(gym.Env):
         if player == WHITE:
             return BLACK
         return WHITE
+
+    def sava_q_table(self):
+        q_table = self.get_Q_table()
+
+        # 存储Q-table到文件
+        with open('q_table.pkl', 'wb') as file:
+            pickle.dump(q_table, file)
+
+    def load_q_table(self):
+        # 从文件中提取Q-table
+        with open('q_table.pkl', 'rb') as file:
+            q_table_loaded = pickle.load(file)
+        self.Q = q_table_loaded

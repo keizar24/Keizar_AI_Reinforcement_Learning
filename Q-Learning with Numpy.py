@@ -1,4 +1,5 @@
 import time
+import GameAI
 
 import numpy as np
 from V1_to_KeizarEnv import KeizarEnv
@@ -38,10 +39,14 @@ def training():
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
     env.sava_q_table()
     print(mean_rewards)
-    print(env.get_Q_table())
+    # print(env.get_Q_table())
     plt.plot(mean_rewards)
     plt.savefig('q-learning.png')
+    return env.get_Q_table()
 
 
 if __name__ == '__main__':
-    training()
+    q_table = training()
+
+    gameAI = GameAI.GameAI('q_table.pkl')
+    assert (gameAI.get_q_table() == q_table)

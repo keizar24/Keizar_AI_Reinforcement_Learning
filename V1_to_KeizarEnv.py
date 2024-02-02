@@ -11,6 +11,7 @@ from gym import spaces, error
 from gym.envs.registration import register
 from gym.utils import seeding
 from six import StringIO
+import pickle
 
 EMPTY_SQUARE_ID = 0
 KING_ID = 1
@@ -98,6 +99,7 @@ def get_move(state, player, type='train'):
     response = session.post(url, data=json_data, headers={'Content-Type': 'application/json'})
     return parseJson(response.text)
 
+
 class KeizarEnv(gym.Env):
     def __init__(
             self,
@@ -159,14 +161,14 @@ class KeizarEnv(gym.Env):
         self.move_count = 0
         self.white_keizar = 0
         self.black_keizar = 0
-        self.possible_moves = get_moves_from_state(self.state, player=WHITE)
+        self.possible_moves = get_move(self.state, player=WHITE)
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
             # make move
             self.state, _, _, _ = self.player_move(BLACK)
             self.move_count += 1
             self.current_player = BLACK
-            self.possible_moves = get_moves_from_state(self.state, player=BLACK)
+            self.possible_moves = get_move(self.state, player=BLACK)
         return self.state
 
     def step(self):
@@ -207,7 +209,7 @@ class KeizarEnv(gym.Env):
         # now it's opponent's turn
         new_state_2, done = self.opponent_move()
         self.done = done
-        new_move_list = get_moves_from_state(new_state_2, self.player)
+        new_move_list = get_move(new_state_2, self.player)
         self.state = new_state_2
 
         # if game is done, return the state, reward, done, info, move, new_move_list, None
@@ -257,7 +259,7 @@ class KeizarEnv(gym.Env):
         Returns (state, reward, done)
         """
         # Play
-        curr_moves = get_moves_from_state(self.state, player)
+        curr_moves = get_move(self.state, player)
         # print(moves)
         if curr_moves.size == 0:
             if self.on_keizar(self.state, player):

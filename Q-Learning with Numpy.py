@@ -4,7 +4,8 @@ import numpy as np
 from V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
-if __name__ == '__main__':
+
+def training():
     env = KeizarEnv()
     env._max_episode_steps = 1000
     n_games = 50
@@ -17,7 +18,7 @@ if __name__ == '__main__':
     for i in range(n_games):
         done = False
         state = env.reset()
-        if i % 1000 == 0 and i > 0:
+        if i % 10 == 0 and i > 0:
             print('episode ', i, 'score ', score, 'epsilon %.3f', eps)
         score = 0
         while not done:
@@ -35,7 +36,12 @@ if __name__ == '__main__':
     mean_rewards = np.zeros(n_games)
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
+    env.sava_q_table()
     print(mean_rewards)
     print(env.get_Q_table())
     plt.plot(mean_rewards)
     plt.savefig('q-learning.png')
+
+
+if __name__ == '__main__':
+    training()

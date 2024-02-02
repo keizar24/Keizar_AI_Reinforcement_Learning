@@ -233,12 +233,12 @@ class KeizarEnv(gym.Env):
         return self.state, False
 
     def curr_max_action(self, state, actions=None, eps=False):
-        greddy_level = 0.9
+        greedy_level = 0.9
         rand = np.random.random()
         max_action = []
         if actions is None:
             return []
-        if rand > greddy_level and eps:
+        if rand > greedy_level and eps:
             max_action = actions[np.random.choice(actions.shape[0])]
         else:
             max_value = 0

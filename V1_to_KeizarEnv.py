@@ -86,11 +86,11 @@ def parseJson(text):
 session = requests.Session()
 
 
-def get_state_from_prev(prev_state, player):
+def get_moves_from_state(state, player):
     url = f'http://localhost:49152/moves/{player.lower()}'
 
     data = {
-        'board': prev_state.tolist(),
+        'board': state.tolist(),
     }
     json_data = json.dumps(data)
 
@@ -157,14 +157,14 @@ class KeizarEnv(gym.Env):
         self.move_count = 0
         self.white_keizar = 0
         self.black_keizar = 0
-        self.possible_moves = get_state_from_prev(self.state, player=WHITE)
+        self.possible_moves = get_moves_from_state(self.state, player=WHITE)
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
             # make move
             self.state, _, _, _ = self.player_move(BLACK)
             self.move_count += 1
             self.current_player = BLACK
-            self.possible_moves = get_state_from_prev(self.state, player=BLACK)
+            self.possible_moves = get_moves_from_state(self.state, player=BLACK)
         return self.state
 
     def step(self):
@@ -184,30 +184,55 @@ class KeizarEnv(gym.Env):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        # Game is done
-        if self.done:
-            return (
-                self.state,
-                0.0,
-                True,
-                self.info,
-            )
+        # # Game is done
+        # if self.done:
+        #     return (
+        #         self.state,
+        #         0.0,
+        #         True,
+        #         self.info,
+        #     )
         # valid action reward
         reward = 0
-        # make move
-        self.state, move, move_reward, actions = self.player_move(self.player)
+        # my agent make move
+        self.prev_state = self.state
+        # new state 1 is the state after agent move before opponent move
+        new_state_1, move, move_reward, move_list = self.player_move(self.player)
         reward += move_reward
+        self.state = new_state_1
+        # my agent finished moving, all parameters in intermediate state are set
 
+        # now it's opponent's turn
+        new_state_2, done = self.opponent_move()
+        self.done = done
+        new_move_list = get_moves_from_state(new_state_2, self.player)
+        self.state = new_state_2
+
+        # if game is done, return the state, reward, done, info, move, new_move_list, None
+        if self.done:
+            return self.state, reward, self.done, self.info, move, new_move_list, None
+
+        # if game is not done, return the state, reward, done, info, move, new_move_list, move_list
+        return self.state, reward, self.done, self.info, move, new_move_list, move_list
+
+    def opponent_move(self):
+        # if self.done:
+        #     return (
+        #         self.state,
+        #         True,
+        #     )
+        self.prev_state = self.state
         # opponent play
         opponent_player = self.player_2
         self.state, _, _, _ = self.player_move(opponent_player)
-
         if self.done:
-            return self.state, reward, self.done, self.info, move, None
+            return (
+                self.state,
+                True,
+            )
+        return self.state, False
 
-        return self.state, reward, self.done, self.info, move, actions
-
-    def curr_max_action(self, actions=None, eps=False):
+    def curr_max_action(self, state, actions=None, eps=False):
         greddy_level = 0.9
         rand = np.random.random()
         max_action = []
@@ -218,11 +243,11 @@ class KeizarEnv(gym.Env):
         else:
             max_value = 0
             for action in actions:
-                if (str(), str(action)) not in self.Q.keys():
-                    self.Q[str(), str(action)] = np.random.random()
-                if self.Q[str(), str(action)] > max_value:
+                if (str(state), str(action)) not in self.Q.keys():
+                    self.Q[str(state), str(action)] = np.random.random()
+                if self.Q[str(state), str(action)] > max_value:
                     max_action = action
-                    max_value = self.Q[str(), str(action)]
+                    max_value = self.Q[str(state), str(action)]
         return max_action
 
     def player_move(self, player):
@@ -230,9 +255,9 @@ class KeizarEnv(gym.Env):
         Returns (state, reward, done)
         """
         # Play
-        moves = get_state_from_prev(self.state, player)
+        curr_moves = get_moves_from_state(self.state, player)
         # print(moves)
-        if moves.size == 0:
+        if curr_moves.size == 0:
             if self.on_keizar(self.state, player):
                 reward = WIN_REWARD
                 self.done = True
@@ -243,15 +268,16 @@ class KeizarEnv(gym.Env):
 
         # choose the best move if current player is the agent, else do a random move
         if player == self.player:
-            move = self.curr_max_action(moves, True)
+            curr_move = self.curr_max_action(self.state, curr_moves, True)
         else:
-            move = random.choice(moves)
-        new_state, reward = self.next_state(self.state, self.current_player, move)
+            curr_move = random.choice(curr_moves)
+
+        new_state, reward = self.next_state(self.state, self.current_player, curr_move)
 
         # Render
         # if self.log:
         #     print(" " * 10, ">" * 10, self.current_player)
-        return new_state, move, reward, moves
+        return new_state, curr_move, reward, curr_moves
 
     def next_state(self, state, player, move):
         """
@@ -273,7 +299,7 @@ class KeizarEnv(gym.Env):
 
         return new_state, reward
 
-    def undate_Q_table(self, prev_state, action, action_, reward, alpha, gamma, p=0.1):
+    def update_Q_table(self, prev_state, action, action_, reward, alpha, gamma, p=0.1):
         # if current state is not in Q table, initialize it with a random number
         if (str(prev_state), str(action)) not in self.Q.keys():
             self.Q[str(prev_state), str(action)] = p
@@ -356,12 +382,10 @@ class KeizarEnv(gym.Env):
         else:
             return None
 
-
     # def switch_player(self):
     #     other_player = self.get_other_player(self.current_player)
     #     self.current_player = other_player
     #     return other_player
-
 
     @property
     def info(self):

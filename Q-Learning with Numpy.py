@@ -24,11 +24,11 @@ if __name__ == '__main__':
         score = 0
         while not done:
             p = np.random.random()
-            state_, reward, done, info, action, actions = env.step()
+            state_, reward, done, info, action, actions_, actions = env.step()
             score += reward
-            action_ = env.curr_max_action(actions)
-            env.undate_Q_table(state, action, action_ ,reward, alpha, gamma)
-            state = state_
+            # find the max value of the updated new state
+            action_ = env.curr_max_action(state_, actions_)
+            env.update_Q_table(state, action, action_, reward, alpha, gamma)
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
         time.sleep(0.1)

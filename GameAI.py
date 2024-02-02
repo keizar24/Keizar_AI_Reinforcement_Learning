@@ -1,4 +1,7 @@
 import pickle
+import random
+
+import numpy as np
 
 class GameAI:
     def __init__(self, q_table_path):
@@ -20,5 +23,14 @@ class GameAI:
 
     def get_q_table(self):
         return self.q_table
+
+    def decide_action(self, state, actions):
+        keys = self.q_table.keys()
+        states = [s for (s, _) in keys]
+        if state in states:
+            action = actions[np.argmax([self.q_table[(state, action)] for action in actions])]
+        else:
+            action = random.choice(actions)
+        return action
 
     # Add methods to update and use the Q-table as needed for your game AI.

@@ -418,15 +418,3 @@ class KeizarEnv(gym.Env):
             return BLACK
         return WHITE
 
-    def sava_q_table(self):
-        q_table = self.get_Q_table()
-
-        # 存储Q-table到文件
-        with open('q_table.pkl', 'wb') as file:
-            pickle.dump(q_table, file)
-
-    def load_q_table(self):
-        # 从文件中提取Q-table
-        with open('q_table.pkl', 'rb') as file:
-            q_table_loaded = pickle.load(file)
-        self.Q = q_table_loaded

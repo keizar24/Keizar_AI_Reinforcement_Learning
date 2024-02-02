@@ -31,13 +31,11 @@ def training():
             env.update_Q_table(state, action, action_, reward, alpha, gamma)
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
-        time.sleep(0.1)
 
     # plot learning curve
     mean_rewards = np.zeros(n_games)
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
-    env.sava_q_table()
     print(mean_rewards)
     # print(env.get_Q_table())
     plt.plot(mean_rewards)

@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 
+
 class GameAI:
     def __init__(self, q_table_path):
         self.q_table_path = q_table_path

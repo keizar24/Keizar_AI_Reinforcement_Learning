@@ -105,9 +105,11 @@ class KeizarEnv(gym.Env):
             opponent="random",
             log=True,
             initial_state=DEFAULT_BOARD,
-            Q={}
+            Q=None
     ):
         # constants
+        if Q is None:
+            Q = {}
         self.log = log
         self.initial_state = initial_state
 
@@ -210,10 +212,10 @@ class KeizarEnv(gym.Env):
 
         # if game is done, return the state, reward, done, info, move, new_move_list, None
         if self.done:
-            return self.state, reward, self.done, self.info, move, new_move_list, None
+            return self.state, reward, self.done, self.info, move, new_move_list
 
         # if game is not done, return the state, reward, done, info, move, new_move_list, move_list
-        return self.state, reward, self.done, self.info, move, new_move_list, move_list
+        return self.state, reward, self.done, self.info, move, new_move_list
 
     def opponent_move(self):
         # if self.done:

@@ -4,12 +4,10 @@ import numpy as np
 from V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
-
-
 if __name__ == '__main__':
     env = KeizarEnv()
     env._max_episode_steps = 1000
-    n_games = 500
+    n_games = 50
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
@@ -24,7 +22,7 @@ if __name__ == '__main__':
         score = 0
         while not done:
             p = np.random.random()
-            state_, reward, done, info, action, actions_, actions = env.step()
+            state_, reward, done, info, action, actions_ = env.step()
             score += reward
             # find the max value of the updated new state
             action_ = env.curr_max_action(state_, actions_)

@@ -87,7 +87,7 @@ session = requests.Session()
 
 
 def get_moves_from_state(state, player):
-    url = f'http://localhost:49152/moves/{player.lower()}'
+    url = f'http://localhost:8080/moves/{player.lower()}'
 
     data = {
         'board': state.tolist(),

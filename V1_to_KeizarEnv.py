@@ -105,6 +105,7 @@ class KeizarEnv(gym.Env):
             opponent="random",
             log=True,
             initial_state=DEFAULT_BOARD,
+            Q={}
     ):
         # constants
         self.log = log
@@ -134,6 +135,7 @@ class KeizarEnv(gym.Env):
         self.white_keizar = 0
         self.black_keizar = 0
         self.possible_moves = None
+        self.Q = Q
 
         # reset and build state
         self.reset()

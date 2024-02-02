@@ -6,16 +6,21 @@ import matplotlib.pyplot as plt
 
 
 def max_action(Q, state, actions=None):
+    greddy_level = 0.9
+    rand = np.random.random()
     max_action = []
-    max_value = 0
-    if actions is None:
-        return []
-    for action in actions:
-        if (str(state), str(action)) not in Q.keys():
-            Q[str(state), str(action)] = np.random.random()
-        elif Q[str(state), str(action)] > max_value:
-            max_action = action
-            max_value = Q[str(state), str(action)]
+    if rand > greddy_level:
+        max_action = np.random.choice(actions)
+    else:
+        max_value = 0
+        if actions is None:
+            return []
+        for action in actions:
+            if (str(state), str(action)) not in Q.keys():
+                Q[str(state), str(action)] = np.random.random()
+            if Q[str(state), str(action)] > max_value:
+                max_action = action
+                max_value = Q[str(state), str(action)]
     return max_action
 
 
@@ -43,9 +48,9 @@ if __name__ == '__main__':
             score += reward
             action_ = max_action(Q, state_, actions)
             if (str(state), str(action)) not in Q.keys():
-                Q[str(state), str(action)] = np.random.random()
+                Q[str(state), str(action)] = p
             if (str(state_), str(action_)) not in Q.keys():
-                Q[str(state_), str(action_)] = np.random.random()
+                Q[str(state_), str(action_)] = p
             Q[str(state), str(action)] = Q[str(state), str(action)] + alpha * (reward + gamma * Q[str(state_), str(action_)] - Q[str(state), str(action)])
             state = state_
         total_rewards[i] = score

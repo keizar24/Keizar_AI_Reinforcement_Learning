@@ -5,11 +5,11 @@ from V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
 
-def max_action(Q, state, actions=None):
+def max_action(Q, state, actions=None, eps=False):
     greddy_level = 0.9
     rand = np.random.random()
     max_action = []
-    if rand > greddy_level:
+    if rand > greddy_level and eps:
         max_action = np.random.choice(actions)
     else:
         max_value = 0
@@ -51,7 +51,8 @@ if __name__ == '__main__':
                 Q[str(state), str(action)] = p
             if (str(state_), str(action_)) not in Q.keys():
                 Q[str(state_), str(action_)] = p
-            Q[str(state), str(action)] = Q[str(state), str(action)] + alpha * (reward + gamma * Q[str(state_), str(action_)] - Q[str(state), str(action)])
+            Q[str(state), str(action)] = Q[str(state), str(action)] + alpha * (
+                        reward + gamma * Q[str(state_), str(action_)] - Q[str(state), str(action)])
             state = state_
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01

@@ -207,37 +207,23 @@ class KeizarEnv(gym.Env):
 
         return self.state, reward, self.done, self.info, move, actions
 
-    def switch_player(self):
-        other_player = self.get_other_player(self.current_player)
-        self.current_player = other_player
-        return other_player
-
-    @property
-    def info(self):
-        return dict(
-            state=self.state,
-            move_count=self.move_count,
-        )
-
-    @property
-    def opponent_player(self):
-        if self.current_player == WHITE:
-            return BLACK
-        return WHITE
-
-    @property
-    def current_player_is_white(self):
-        return self.current_player == WHITE
-
-    @property
-    def current_player_is_black(self):
-        return not self.current_player_is_white
-
-    @staticmethod
-    def get_other_player(player):
-        if player == WHITE:
-            return BLACK
-        return WHITE
+    def max_action(self, state, actions=None, eps=False):
+        greddy_level = 0.9
+        rand = np.random.random()
+        max_action = []
+        if rand > greddy_level and eps:
+            max_action = np.random.choice(actions)
+        else:
+            max_value = 0
+            if actions is None:
+                return []
+            for action in actions:
+                if (str(state), str(action)) not in self.Q.keys():
+                    self.Q[str(state), str(action)] = np.random.random()
+                if self.Q[str(state), str(action)] > max_value:
+                    max_action = action
+                    max_value = self.Q[str(state), str(action)]
+        return max_action
 
     def player_move(self, player):
         """
@@ -282,6 +268,17 @@ class KeizarEnv(gym.Env):
         reward += self.move_reward(move, player)
 
         return new_state, reward
+
+    def undate_Q_table(self, state, action, action_, state_, reward, alpha, gamma, p=0.1):
+        if (str(state), str(action)) not in self.Q.keys():
+            self.Q[str(state), str(action)] = p
+        if (str(state_), str(action_)) not in self.Q.keys():
+            self.Q[str(state_), str(action_)] = p
+        self.Q[str(state), str(action)] = self.Q[str(state), str(action)] + alpha * (
+                reward + gamma * self.Q[str(state_), str(action_)] - self.Q[str(state), str(action)])
+
+    def get_Q_table(self):
+        return self.Q
 
     @staticmethod
     def render_grid(grid, mode="human"):
@@ -345,3 +342,36 @@ class KeizarEnv(gym.Env):
             return BLACK
         else:
             return None
+
+
+    def switch_player(self):
+        other_player = self.get_other_player(self.current_player)
+        self.current_player = other_player
+        return other_player
+
+    @property
+    def info(self):
+        return dict(
+            state=self.state,
+            move_count=self.move_count,
+        )
+
+    @property
+    def opponent_player(self):
+        if self.current_player == WHITE:
+            return BLACK
+        return WHITE
+
+    @property
+    def current_player_is_white(self):
+        return self.current_player == WHITE
+
+    @property
+    def current_player_is_black(self):
+        return not self.current_player_is_white
+
+    @staticmethod
+    def get_other_player(player):
+        if player == WHITE:
+            return BLACK
+        return WHITE

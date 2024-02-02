@@ -5,34 +5,14 @@ from V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
 
-def max_action(Q, state, actions=None, eps=False):
-    greddy_level = 0.9
-    rand = np.random.random()
-    max_action = []
-    if rand > greddy_level and eps:
-        max_action = np.random.choice(actions)
-    else:
-        max_value = 0
-        if actions is None:
-            return []
-        for action in actions:
-            if (str(state), str(action)) not in Q.keys():
-                Q[str(state), str(action)] = np.random.random()
-            if Q[str(state), str(action)] > max_value:
-                max_action = action
-                max_value = Q[str(state), str(action)]
-    return max_action
-
 
 if __name__ == '__main__':
     env = KeizarEnv()
     env._max_episode_steps = 1000
-    n_games = 500
+    n_games = 10
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
-
-    Q = {}
 
     score = 0
     total_rewards = np.zeros(n_games)
@@ -46,13 +26,8 @@ if __name__ == '__main__':
             p = np.random.random()
             state_, reward, done, info, action, actions = env.step()
             score += reward
-            action_ = max_action(Q, state_, actions)
-            if (str(state), str(action)) not in Q.keys():
-                Q[str(state), str(action)] = p
-            if (str(state_), str(action_)) not in Q.keys():
-                Q[str(state_), str(action_)] = p
-            Q[str(state), str(action)] = Q[str(state), str(action)] + alpha * (
-                        reward + gamma * Q[str(state_), str(action_)] - Q[str(state), str(action)])
+            action_ = env.max_action(state_, actions, eps=False)
+            env.undate_Q_table(state, action, reward, state_, action_, alpha, gamma)
             state = state_
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
@@ -62,6 +37,6 @@ if __name__ == '__main__':
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
     print(mean_rewards)
-    print(Q)
+    print(env.get_Q_table())
     plt.plot(mean_rewards)
     plt.savefig('q-learning.png')

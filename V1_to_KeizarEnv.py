@@ -199,7 +199,7 @@ class KeizarEnv(gym.Env):
         reward += move_reward
 
         # opponent play
-        opponent_player = self.switch_player()
+        opponent_player = self.player_2
         self.state, _, _, _ = self.player_move(opponent_player)
 
         if self.done:
@@ -240,8 +240,12 @@ class KeizarEnv(gym.Env):
                 reward = LOSS_REWARD
                 self.done = True
             return self.state, None, reward, None
-        # Randomly choose one move
-        move = self.curr_max_action(moves, True)
+
+        # choose the best move if current player is the agent, else do a random move
+        if player == self.player:
+            move = self.curr_max_action(moves, True)
+        else:
+            move = random.choice(moves)
         new_state, reward = self.next_state(self.state, self.current_player, move)
 
         # Render
@@ -352,10 +356,12 @@ class KeizarEnv(gym.Env):
         else:
             return None
 
-    def switch_player(self):
-        other_player = self.get_other_player(self.current_player)
-        self.current_player = other_player
-        return other_player
+
+    # def switch_player(self):
+    #     other_player = self.get_other_player(self.current_player)
+    #     self.current_player = other_player
+    #     return other_player
+
 
     @property
     def info(self):

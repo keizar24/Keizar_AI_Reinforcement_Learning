@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     env = KeizarEnv()
     env._max_episode_steps = 1000
-    n_games = 50
+    n_games = 500
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
@@ -33,6 +33,7 @@ if __name__ == '__main__':
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
         time.sleep(0.1)
 
+    # plot learning curve
     mean_rewards = np.zeros(n_games)
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])

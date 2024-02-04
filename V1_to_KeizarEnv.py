@@ -1,17 +1,15 @@
 import random
 import sys
-from collections import defaultdict
 from copy import copy
 import requests
 import json
+import ast
 
 import gym
 import numpy as np
-from gym import spaces, error
+from gym import spaces
 from gym.envs.registration import register
-from gym.utils import seeding
 from six import StringIO
-import pickle
 
 EMPTY_SQUARE_ID = 0
 KING_ID = 1
@@ -100,6 +98,36 @@ def get_move(state, player, type='train'):
     return parseJson(response.text)
 
 
+def parseStr(text):
+    return ast.literal_eval(text)
+
+
+def refactor_board(text):
+    tiles = parseStr(text)
+    for i in range(2):
+        for j in range(8):
+            if tiles[i][j] == 0:
+                tiles[i][j] = 6
+    for i in range(2, 6):
+        for j in range(8):
+            tiles[i][j] = 0
+    for i in range(6, 8):
+        for j in range(8):
+            if tiles[i][j] == 0:
+                tiles[i][j] = -6
+    return tiles
+
+
+def get_board(seed=None):
+    url = f'http://localhost:49152/board'
+
+    response = session.get(url, headers={'Content-Type': 'application/json'})
+
+    board = refactor_board(response.text)
+    print(board)
+    return np.array(board)
+
+
 class KeizarEnv(gym.Env):
     def __init__(
             self,
@@ -154,7 +182,7 @@ class KeizarEnv(gym.Env):
         Resets the state of the environment, returning an initial observation.
         Outputs -> observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-        self.state = self.initial_state
+        self.state = get_board()
         self.prev_state = None
         self.done = False
         self.current_player = WHITE
@@ -417,4 +445,3 @@ class KeizarEnv(gym.Env):
         if player == WHITE:
             return BLACK
         return WHITE
-

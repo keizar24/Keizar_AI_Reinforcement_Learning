@@ -121,10 +121,10 @@ def refactor_board(text):
     return tiles
 
 
-def get_board(seed=None):
-    url = f'http://localhost:49152/board'
+def get_board(seed=0):
+    url = f'http://localhost:49152/board/{seed}'
 
-    response = session.get(url, headers={'Content-Type': 'application/json'})
+    response = session.put(url, headers={'Content-Type': 'application/json'})
 
     board = refactor_board(response.text)
     print(board)

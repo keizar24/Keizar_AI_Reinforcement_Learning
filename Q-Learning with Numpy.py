@@ -1,4 +1,3 @@
-import time
 import GameAI
 
 import numpy as np

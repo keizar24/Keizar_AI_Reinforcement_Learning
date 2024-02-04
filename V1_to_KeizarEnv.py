@@ -434,3 +434,9 @@ class KeizarEnv(gym.Env):
         if player == WHITE:
             return BLACK
         return WHITE
+
+    def move_feedback(self, move):
+        new_state, _ = self.next_state(self.state, move, self.player_2)
+        self.state = new_state
+        new_state, curr_move, _, _ = self.player_move(self.player)
+        return new_state, curr_move

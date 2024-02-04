@@ -23,7 +23,6 @@ def training():
             print('episode ', i, 'score ', score, 'epsilon %.3f', eps)
         score = 0
         while not done:
-            p = np.random.random()
             state_, reward, done, info, action, actions_ = env.step()
             score += reward
             # find the max value of the updated new state

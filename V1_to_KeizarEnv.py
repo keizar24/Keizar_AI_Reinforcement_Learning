@@ -115,6 +115,9 @@ def refactor_board(text):
         for j in range(8):
             if tiles[i][j] == 0:
                 tiles[i][j] = -6
+            else:
+                tiles[i][j] *= -1
+
     return tiles
 
 

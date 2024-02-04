@@ -5,6 +5,8 @@ import numpy as np
 from V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
+import pickle
+
 
 def training():
     env = KeizarEnv()
@@ -42,8 +44,14 @@ def training():
     return env.get_Q_table()
 
 
+def save_q_table(q_table):
+    with open("./q_table.pkl", 'wb') as file:
+        pickle.dump(q_table, file)
+
+
 if __name__ == '__main__':
     q_table = training()
+    save_q_table(q_table)
 
     gameAI = GameAI.GameAI('q_table.pkl')
     assert (gameAI.get_q_table() == q_table)

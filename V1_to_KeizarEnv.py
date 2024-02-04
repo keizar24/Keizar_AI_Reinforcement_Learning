@@ -429,20 +429,6 @@ class KeizarEnv(gym.Env):
             move_count=self.move_count,
         )
 
-    @property
-    def opponent_player(self):
-        if self.current_player == WHITE:
-            return BLACK
-        return WHITE
-
-    @property
-    def current_player_is_white(self):
-        return self.current_player == WHITE
-
-    @property
-    def current_player_is_black(self):
-        return not self.current_player_is_white
-
     @staticmethod
     def get_other_player(player):
         if player == WHITE:

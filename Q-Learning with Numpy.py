@@ -10,7 +10,7 @@ WHITE = "WHITE"
 BLACK = "BLACK"
 
 
-def training(opponent_Q=None, player=WHITE, n_games=500):
+def training(opponent_Q=None, player=WHITE, n_games=70, epis=0):
     if opponent_Q is None:
         env = KeizarEnv(player_color=player)
     else:
@@ -43,9 +43,8 @@ def training(opponent_Q=None, player=WHITE, n_games=500):
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
     print(mean_rewards)
-    # print(env.get_Q_table())
     plt.plot(mean_rewards)
-    plt.savefig('q-learning-{}.png'.format(player))
+    plt.savefig('./training_pictures/q-learning-{}-{}.png'.format(player, epis))
     save_q_table(env.get_Q_table(), player)
 
 
@@ -55,11 +54,20 @@ def save_q_table(q_table, player):
 
 
 if __name__ == '__main__':
-    # training with random
-    training(player=WHITE)
 
-    # load pickle
-    opponent_q_table = GameAI('q_table.pkl-WHITE').q_table
+    episode = 10
+    white_q_table = None
+    black_q_table = None
+    for i in range(episode):
+        # training with random
+        training(player=WHITE, epis=i)
 
-    # new training
-    training(opponent_Q=opponent_q_table, player=BLACK)
+        # load pickle
+        white_q_table = GameAI('q_table.pkl-WHITE').q_table
+
+        # new training
+        training(opponent_Q=white_q_table, player=BLACK, epis=i)
+
+        black_q_table = GameAI('q_table.pkl-BLACK').q_table
+
+

@@ -131,6 +131,11 @@ def get_board(seed=0):
     return np.array(board)
 
 
+def return_new_move():
+    # TODO: implement the network connection for returning new moves.
+    pass
+
+
 class KeizarEnv(gym.Env):
     def __init__(
             self,
@@ -138,7 +143,8 @@ class KeizarEnv(gym.Env):
             opponent="random",
             log=True,
             initial_state=DEFAULT_BOARD,
-            Q=None
+            Q=None,
+            opponent_Q=None
     ):
         # constants
         if Q is None:
@@ -171,14 +177,15 @@ class KeizarEnv(gym.Env):
         self.black_keizar = 0
         self.possible_moves = None
         self.Q = Q
+        self.opponent_Q = opponent_Q
 
         # reset and build state
         self.reset()
-        register(
-            id="gym_keizar/KeizarEnv-v0",
-            entry_point="gym_keizar.envs:KeizarEnv",
-            max_episode_steps=300,
-        )
+        # register(
+        #     id="gym_keizar/KeizarEnv-v0",
+        #     entry_point="gym_keizar.envs:KeizarEnv",
+        #     max_episode_steps=300,
+        # )
 
     def reset(self):
         """
@@ -267,7 +274,8 @@ class KeizarEnv(gym.Env):
             )
         return self.state, False
 
-    def curr_max_action(self, state, actions=None, eps=False):
+    def curr_max_action(self, state, actions=None, eps=False, isSelf=True):
+        q_table = self.Q if isSelf else self.opponent_Q
         greedy_level = 0.9
         rand = np.random.random()
         max_action = []
@@ -278,11 +286,11 @@ class KeizarEnv(gym.Env):
         else:
             max_value = 0
             for action in actions:
-                if (str(state), str(action)) not in self.Q.keys():
-                    self.Q[str(state), str(action)] = np.random.random()
-                if self.Q[str(state), str(action)] > max_value:
+                if (str(state), str(action)) not in q_table.keys():
+                    q_table[str(state), str(action)] = np.random.random()
+                if q_table[str(state), str(action)] > max_value:
                     max_action = action
-                    max_value = self.Q[str(state), str(action)]
+                    max_value = q_table[str(state), str(action)]
         return max_action
 
     def player_move(self, player):
@@ -303,9 +311,12 @@ class KeizarEnv(gym.Env):
 
         # choose the best move if current player is the agent, else do a random move
         if player == self.player:
-            curr_move = self.curr_max_action(self.state, curr_moves, True)
+            curr_move = self.curr_max_action(self.state, curr_moves, True, True)
         else:
-            curr_move = random.choice(curr_moves)
+            if self.opponent_Q is None:
+                curr_move = random.choice(curr_moves)
+            else:
+                curr_move = self.curr_max_action(self.state, curr_moves, True, False)
 
         new_state, reward = self.next_state(self.state, self.current_player, curr_move)
 

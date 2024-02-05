@@ -1,4 +1,4 @@
-import GameAI
+from GameAI import GameAI
 
 import numpy as np
 from V1_to_KeizarEnv import KeizarEnv
@@ -6,11 +6,17 @@ import matplotlib.pyplot as plt
 
 import pickle
 
+WHITE = "WHITE"
+BLACK = "BLACK"
 
-def training():
-    env = KeizarEnv()
+
+def training(opponent_Q=None, player=WHITE, n_games=500):
+    if opponent_Q is None:
+        env = KeizarEnv(player_color=player)
+    else:
+        env = KeizarEnv(opponent_Q=opponent_Q, player_color=player)
     env._max_episode_steps = 1000
-    n_games = 50
+    n_games = n_games
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
@@ -39,18 +45,21 @@ def training():
     print(mean_rewards)
     # print(env.get_Q_table())
     plt.plot(mean_rewards)
-    plt.savefig('q-learning.png')
-    return env.get_Q_table()
+    plt.savefig('q-learning-{}.png'.format(player))
+    save_q_table(env.get_Q_table(), player)
 
 
-def save_q_table(q_table):
-    with open("./q_table.pkl", 'wb') as file:
+def save_q_table(q_table, player):
+    with open("./q_table.pkl-{}".format(player), 'wb') as file:
         pickle.dump(q_table, file)
 
 
 if __name__ == '__main__':
-    q_table = training()
-    save_q_table(q_table)
+    # training with random
+    training(player=WHITE)
 
-    gameAI = GameAI.GameAI('q_table.pkl')
-    assert (gameAI.get_q_table() == q_table)
+    # load pickle
+    opponent_q_table = GameAI('q_table.pkl-WHITE').q_table
+
+    # new training
+    training(opponent_Q=opponent_q_table, player=BLACK)

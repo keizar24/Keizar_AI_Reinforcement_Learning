@@ -8,7 +8,6 @@ import ast
 import gym
 import numpy as np
 from gym import spaces
-from gym.envs.registration import register
 from six import StringIO
 
 EMPTY_SQUARE_ID = 0

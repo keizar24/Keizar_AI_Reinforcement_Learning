@@ -72,36 +72,6 @@ RESIGN = "RESIGN"
 # ---------------------------
 
 
-# def get_move(state, player, type='train'):
-#     url = 'http://127.0.0.1:5000/moves' \
-#         if type == 'train' else 'http://localhost:5000/moves'  # TODO: new url for testing
-#
-#     data = {
-#         'board': state.tolist(),
-#         'player': player
-#     }
-#
-#     json_data = json.dumps(data)
-#     response = session.post(url, json=json_data, headers={'Content-Type': 'application/json'})
-#     return response.text
-#     # return parseJson(response.text)
-
-
-
-# def get_board(seed=0):
-#     url = f'http://localhost:49152/board/{seed}'
-#
-#     response = session.put(url, headers={'Content-Type': 'application/json'})
-#
-#     board = refactor_board(response.text)
-#     return np.array(board)
-
-
-def return_new_move():
-    # TODO: implement the network connection for returning new moves.
-    pass
-
-
 class KeizarEnv(gym.Env):
     def __init__(
             self,
@@ -378,10 +348,10 @@ class KeizarEnv(gym.Env):
     @staticmethod
     def on_keizar(state, player):
         # White is on the keizar tile
-        if state[4, 3] > 0:
+        if 10 < state[4, 3] < 20:
             return player == WHITE
         # Black is on the keizar tile
-        elif state[4, 3] < 0:
+        elif 20 < state[4, 3] < 30:
             return player == BLACK
         # Neither player dominates the keizar board
         else:

@@ -1,7 +1,7 @@
-from GameAI import GameAI
+from AI.GameAI import GameAI
 
 import numpy as np
-from V1_to_KeizarEnv import KeizarEnv
+from AI.V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
 import pickle

@@ -85,16 +85,18 @@ session = requests.Session()
 
 
 def get_move(state, player, type='train'):
-    url = f'http://localhost:49152/moves/{player.lower()}' \
-        if type == 'train' else f'http://localhost:49152/moves/{player.lower()}'  # TODO: new url for testing
+    url = 'http://127.0.0.1:5000/moves' \
+        if type == 'train' else 'http://localhost:5000/moves'  # TODO: new url for testing
 
     data = {
         'board': state.tolist(),
+        'player': player
     }
-    json_data = json.dumps(data)
 
-    response = session.post(url, data=json_data, headers={'Content-Type': 'application/json'})
-    return parseJson(response.text)
+    json_data = json.dumps(data)
+    response = session.post(url, json=json_data, headers={'Content-Type': 'application/json'})
+    return response.text
+    # return parseJson(response.text)
 
 
 def parseStr(text):
@@ -453,3 +455,4 @@ class KeizarEnv(gym.Env):
         self.state = new_state
         new_state, curr_move, _, _ = self.player_move(self.player)
         return new_state, curr_move
+

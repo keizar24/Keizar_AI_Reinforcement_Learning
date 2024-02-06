@@ -139,7 +139,7 @@ class KeizarEnv(gym.Env):
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
             # make move
-            self.state, _, _, _ = self.player_move(BLACK)
+            self.state, _, _, _ = self.player_move(WHITE)
             self.move_count += 1
             self.current_player = BLACK
             self.possible_moves = get_move(self.state, player=BLACK)
@@ -183,7 +183,7 @@ class KeizarEnv(gym.Env):
         # now it's opponent's turn
         new_state_2, done = self.opponent_move()
         self.done = done
-        new_move_list = get_move(new_state_2, self.player)
+        new_move_list = get_move(new_state_2, self.player_2)
         self.state = new_state_2
 
         # if game is done, return the state, reward, done, info, move, new_move_list, None

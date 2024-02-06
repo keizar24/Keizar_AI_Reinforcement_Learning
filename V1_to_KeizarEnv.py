@@ -107,15 +107,16 @@ def refactor_board(text):
         for j in range(8):
             if tiles[i][j] == 0:
                 tiles[i][j] = 6
+            tiles[i][j] += 10
     for i in range(2, 6):
         for j in range(8):
-            tiles[i][j] = 0
+            if tiles[i][j] == 0:
+                tiles[i][j] = 6
     for i in range(6, 8):
         for j in range(8):
             if tiles[i][j] == 0:
-                tiles[i][j] = -6
-            else:
-                tiles[i][j] *= -1
+                tiles[i][j] = 6
+            tiles[i][j] += 20
 
     return tiles
 
@@ -335,9 +336,12 @@ class KeizarEnv(gym.Env):
         # implement move
         [fx, fy, tx, ty, _] = move
         piece_to_move = copy(new_state[fx, fy])
-        new_state[fx, fy] = 0
-        new_state[tx, ty] = piece_to_move
-
+        if new_state[fx, fy] < 20:  # The tile is white
+            new_state[fx, fy] -= 10
+            new_state[tx, ty] = piece_to_move % 10 + 10
+        else:                       # The tile is black
+            new_state[fx, fy] -= 20
+            new_state[tx, ty] = piece_to_move % 10 + 20
         # Reward
         reward += self.move_reward(move, player)
 

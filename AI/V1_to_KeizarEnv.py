@@ -115,8 +115,6 @@ class KeizarEnv(gym.Env):
         self.Q = Q
         self.opponent_Q = opponent_Q
 
-        # reset and build state
-        self.reset()
         # register(
         #     id="gym_keizar/KeizarEnv-v0",
         #     entry_point="gym_keizar.envs:KeizarEnv",
@@ -136,6 +134,7 @@ class KeizarEnv(gym.Env):
         self.white_keizar = 0
         self.black_keizar = 0
         self.possible_moves = get_move(self.state, player=WHITE)
+        # print("move from init white")
         # If player chooses black, make white opponent move first
         if self.player == BLACK:
             # make move
@@ -143,6 +142,7 @@ class KeizarEnv(gym.Env):
             self.move_count += 1
             self.current_player = BLACK
             self.possible_moves = get_move(self.state, player=BLACK)
+            # print("move from init black")
         return self.state
 
     def step(self):
@@ -184,6 +184,7 @@ class KeizarEnv(gym.Env):
         new_state_2, done = self.opponent_move()
         self.done = done
         new_move_list = get_move(new_state_2, self.player_2)
+        # print("get move from opponent in step")
         self.state = new_state_2
 
         # if game is done, return the state, reward, done, info, move, new_move_list, None
@@ -235,6 +236,7 @@ class KeizarEnv(gym.Env):
         """
         # Play
         curr_moves = get_move(self.state, player)
+        # print("get move from player_move")
         # print(moves)
         if curr_moves.size == 0:
             if self.on_keizar(self.state, player):

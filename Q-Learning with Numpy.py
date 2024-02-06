@@ -16,7 +16,7 @@ def training(opponent_Q=None, player=WHITE, n_games=70, epis=0):
     else:
         env = KeizarEnv(opponent_Q=opponent_Q, player_color=player)
     env._max_episode_steps = 1000
-    n_games = n_games
+    n_games = (epis + 1) * 10
     alpha = 0.1
     gamma = 0.99
     eps = 1.0

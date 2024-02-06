@@ -1,7 +1,44 @@
 import requests
 import json
 import numpy as np
-from V1_to_KeizarEnv import parseJson
+import ast
+
+
+def parseLocation(loc):
+    return [loc >> 32, loc & 15]
+
+
+def parseStr(text):
+    return ast.literal_eval(text)
+
+
+def parseJson(text):
+    data = json.loads(text)
+    # 转换为 numpy 数组
+    result = [parseLocation(item['source']) + parseLocation(item['dest']) + [int(item['isCapture'])] for item in
+              data]
+    return np.array(result)
+
+
+def refactor_board(text):
+    tiles = parseStr(text)
+    for i in range(2):
+        for j in range(8):
+            if tiles[i][j] == 0:
+                tiles[i][j] = 6
+            tiles[i][j] += 10
+    for i in range(2, 6):
+        for j in range(8):
+            if tiles[i][j] == 0:
+                tiles[i][j] = 6
+    for i in range(6, 8):
+        for j in range(8):
+            if tiles[i][j] == 0:
+                tiles[i][j] = 6
+            tiles[i][j] += 20
+
+    return tiles
+
 
 session = requests.Session()
 
@@ -41,5 +78,15 @@ def get_move(state, player, type='train'):
     return parseJson(response.text)
 
 
+def get_board(seed=0):
+    url = f'http://127.0.0.1:49152/board/{seed}'
+
+    response = session.put(url, headers={'Content-Type': 'application/json'})
+
+    board = refactor_board(response.text)
+    return np.array(board)
+
+
 print(test_server())
 print(get_move(DEFAULT_BOARD, WHITE))
+print(get_board())

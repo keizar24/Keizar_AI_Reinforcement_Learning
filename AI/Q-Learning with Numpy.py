@@ -5,6 +5,7 @@ from AI.V1_to_KeizarEnv import KeizarEnv
 import matplotlib.pyplot as plt
 
 import pickle
+import os
 
 WHITE = "WHITE"
 BLACK = "BLACK"
@@ -43,6 +44,13 @@ def training(opponent_Q=None, player=WHITE, epis=0):
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
     plt.plot(mean_rewards)
+    # Directory where the file will be saved
+    directory = './training_pictures'
+
+    # Check if the directory exists
+    if not os.path.exists(directory):
+        # If it does not exist, create it
+        os.makedirs(directory)
     plt.savefig('./training_pictures/q-learning-{}-{}.png'.format(player, epis))
     save_q_table(env.get_Q_table(), player)
 

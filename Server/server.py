@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify
 import requests
 import json
 
-from AI.V1_to_KeizarEnv import parseJson, parseLocation, parseStr
-
 app = Flask(__name__)
 
 session = requests.Session()

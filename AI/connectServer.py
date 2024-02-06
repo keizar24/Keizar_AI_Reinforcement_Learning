@@ -86,7 +86,3 @@ def get_board(seed=0):
     board = refactor_board(response.text)
     return np.array(board)
 
-
-print(test_server())
-print(get_move(DEFAULT_BOARD, WHITE))
-print(get_board())

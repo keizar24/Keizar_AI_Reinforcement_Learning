@@ -71,12 +71,13 @@ def response_best_move(player):
     for (fx, fy, tx, ty, isCapture) in moves:
         isCapture = 1 if isCapture else 0
         actions.append((fx, fy, tx, ty, isCapture))
-    print(actions)
     # pieces: [6,1]
     # move: [1,2,1,3,True]
 
-    return "123"
+    best_move = ai.decide_action(state, actions)
+    best_move = list(best_move)
+    return best_move
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=10202)

@@ -27,7 +27,7 @@ def training(opponent_Q=None, player=WHITE, n_games=70, epis=0):
         done = False
         state = env.reset()
         if i % 10 == 0 and i > 0:
-            print('episode ', i, 'score ', score, 'epsilon %.3f', eps)
+            print('training_set ', epis, 'episode ', i, 'score ', score, 'epsilon %.3f', eps)
         score = 0
         while not done:
             state_, reward, done, info, action, actions_ = env.step()
@@ -42,7 +42,6 @@ def training(opponent_Q=None, player=WHITE, n_games=70, epis=0):
     mean_rewards = np.zeros(n_games)
     for t in range(n_games):
         mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
-    print(mean_rewards)
     plt.plot(mean_rewards)
     plt.savefig('./training_pictures/q-learning-{}-{}.png'.format(player, epis))
     save_q_table(env.get_Q_table(), player)
@@ -53,14 +52,13 @@ def save_q_table(q_table, player):
         pickle.dump(q_table, file)
 
 
-if __name__ == '__main__':
-
+def adversarial_training():
     episode = 10
     white_q_table = None
     black_q_table = None
     for i in range(episode):
         # training with random
-        training(player=WHITE, epis=i)
+        training(opponent_Q=black_q_table, player=WHITE, epis=i)
 
         # load pickle
         white_q_table = GameAI('q_table.pkl-WHITE').q_table
@@ -69,5 +67,10 @@ if __name__ == '__main__':
         training(opponent_Q=white_q_table, player=BLACK, epis=i)
 
         black_q_table = GameAI('q_table.pkl-BLACK').q_table
+
+
+if __name__ == '__main__':
+    adversarial_training()
+
 
 

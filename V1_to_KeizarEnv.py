@@ -126,7 +126,6 @@ def get_board(seed=0):
     response = session.put(url, headers={'Content-Type': 'application/json'})
 
     board = refactor_board(response.text)
-    print(board)
     return np.array(board)
 
 

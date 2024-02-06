@@ -10,7 +10,7 @@ WHITE = "WHITE"
 BLACK = "BLACK"
 
 
-def training(opponent_Q=None, player=WHITE, n_games=70, epis=0):
+def training(opponent_Q=None, player=WHITE, epis=0):
     if opponent_Q is None:
         env = KeizarEnv(player_color=player)
     else:

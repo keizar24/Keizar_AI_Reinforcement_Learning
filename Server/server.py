@@ -36,22 +36,24 @@ def request_move(player):
     return response.text
 
 
-@app.route('/AI/<player>', methods=['GET'])
+@app.route('/AI/<player>', methods=['GET', 'POST'])
 def response_best_move(player):
     if request.content_type != 'application/json':
         return jsonify({"error": "Invalid Content-Type. Please use 'application/json'."}), 400
 
-    ai = GameAI('q_table.pkl-{}'.format(player.upper()))
+    ai = GameAI('../q_table.pkl-{}'.format(player.upper()))
+    print('q_table.pkl-{}'.format(player.upper()))
     # Assuming JSON data is sent
     data = request.get_json()
-    state = data.get('board')
-    actions = data.get('actions')
+    moves = data.get('move')
+    white_pieces = data.get('white_pieces')
+    black_pieces = data.get('black_pieces')
+    print(black_pieces, white_pieces, moves)
 
-    state = ...  # refactor_board(state)
-    action = ...
-    action = ai.decide_action(state, action)
+    # pieces: [6,1]
+    # move: [1,2,1,3,True]
 
-    return jsonify({"action": action})
+    return "123"
 
 
 if __name__ == '__main__':

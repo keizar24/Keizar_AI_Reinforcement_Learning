@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import requests
 import json
-from AI.connectServer import parseJson, parseStr, parseLocation, refactor_board
 
 from AI.GameAI import GameAI
 
@@ -49,7 +48,7 @@ def response_best_move(player):
     actions = data.get('actions')
 
     state = ...  # refactor_board(state)
-    action = parseJson(actions)
+    action = ...
     action = ai.decide_action(state, action)
 
     return jsonify({"action": action})

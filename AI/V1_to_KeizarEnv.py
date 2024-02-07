@@ -45,8 +45,8 @@ BLACK = "BLACK"
 
 # reward system
 SIMPLE_MOVE = 1
-CAPTURE_MOVE = 5
-KEIZER_MOVE = 20
+CAPTURE_MOVE = 10
+KEIZER_MOVE = 200
 WIN_REWARD = 1000
 LOSS_REWARD = -1000
 
@@ -213,7 +213,7 @@ class KeizarEnv(gym.Env):
 
     def curr_max_action(self, state, actions=None, eps=False, isSelf=True):
         q_table = self.Q if isSelf else self.opponent_Q
-        greedy_level = 0.9
+        greedy_level = 0.75
         rand = np.random.random()
         max_action = []
         if actions is None:

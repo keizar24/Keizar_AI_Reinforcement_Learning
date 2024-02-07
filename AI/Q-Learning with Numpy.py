@@ -17,7 +17,8 @@ def training(opponent_Q=None, player=WHITE, epis=0):
     else:
         env = KeizarEnv(opponent_Q=opponent_Q, player_color=player)
     env._max_episode_steps = 1000
-    n_games = (epis + 1) * 10
+    # n_games = (epis + 1) * 10
+    n_games = 100
     alpha = 0.1
     gamma = 0.99
     eps = 1.0
@@ -61,20 +62,20 @@ def save_q_table(q_table, player):
 
 
 def adversarial_training():
-    episode = 20
+    episode = 100
     white_q_table = None
     black_q_table = None
     for i in range(episode):
         # training with random
-        training(opponent_Q=black_q_table, player=WHITE, epis=i)
+        training(opponent_Q=None, player=WHITE, epis=i)
 
         # load pickle
-        white_q_table = GameAI('q_table.pkl-WHITE').q_table
+        # white_q_table = GameAI('q_table.pkl-WHITE').q_table
 
         # new training
-        training(opponent_Q=white_q_table, player=BLACK, epis=i)
-
-        black_q_table = GameAI('q_table.pkl-BLACK').q_table
+        # training(opponent_Q=white_q_table, player=BLACK, epis=i)
+        #
+        # black_q_table = GameAI('q_table.pkl-BLACK').q_table
 
 
 if __name__ == '__main__':

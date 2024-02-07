@@ -28,6 +28,7 @@ class GameAI:
     def decide_action(self, state, actions):
         # Extract states from the q_table keys directly
         states = [s for (s, _) in self.q_table.keys()]
+        print(states[0:5])
         state_actions = [a for (s, a) in self.q_table.keys()]
         state = str(state)
         action = None
@@ -45,9 +46,11 @@ class GameAI:
             print(action)
             if action is None:
                 action = random.choice(actions)
+                print("can't find avaliable action, return random")
         else:
             # If state is not found, choose a random action
             action = random.choice(actions)
+            print("haven't seen this state, return random")
         return action
 
     # Add methods to update and use the Q-table as needed for your game AI.

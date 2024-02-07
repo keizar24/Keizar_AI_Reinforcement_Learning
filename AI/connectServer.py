@@ -67,8 +67,8 @@ def test_server():
 
 
 def get_move(state, player, type='train'):
-    url = f'http://127.0.0.1:5000/moves/{player}' \
-        if type == 'train' else f'http://127.0.0.1:5000/moves{player}'  # TODO: new url for testing
+    url = f'http://192.168.1.130:10202/moves/{player}' \
+        if type == 'train' else f'http://192.168.1.130:10202/moves{player}'  # TODO: new url for testing
 
     data = {
         'board': state.tolist()

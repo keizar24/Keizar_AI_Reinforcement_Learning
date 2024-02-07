@@ -61,7 +61,7 @@ def save_q_table(q_table, player):
 
 
 def adversarial_training():
-    episode = 10
+    episode = 20
     white_q_table = None
     black_q_table = None
     for i in range(episode):

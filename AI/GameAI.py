@@ -28,6 +28,7 @@ class GameAI:
     def decide_action(self, state, actions):
         # Extract states from the q_table keys directly
         states = [s for (s, _) in self.q_table.keys()]
+        state_actions = [a for (s, a) in self.q_table.keys()]
         state = str(state)
         action = None
         # Check if state is in states directly, without using .any()
@@ -35,8 +36,9 @@ class GameAI:
             max = -10000
             # If state is found, choose the action with the highest Q-value for this state
             for a in actions:
-                if (state, a) in self.q_table:
-                    reward = self.q_table[(state, a)]
+                str_a = "[" + " ".join(str(x) for x in a) + "]"
+                if (state, str_a) in self.q_table:
+                    reward = self.q_table[(state, str_a)]
                     if reward > max:
                         max = reward
                         action = a

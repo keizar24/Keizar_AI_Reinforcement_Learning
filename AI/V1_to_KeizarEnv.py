@@ -1,16 +1,13 @@
 import random
 import sys
 from copy import copy
-import requests
-import json
-import ast
 
 import gym
 import numpy as np
 from gym import spaces
 from six import StringIO
 
-from connectServer import test_server, get_move, get_board
+from connectServer import get_move, get_board
 
 EMPTY_SQUARE_ID = 0
 KING_ID = 1
@@ -224,7 +221,7 @@ class KeizarEnv(gym.Env):
             max_value = 0
             for action in actions:
                 if (str(state), str(action)) not in q_table.keys():
-                    q_table[str(state), str(action)] = np.random.random()
+                    q_table[str(state), str(action)] = 0
                 if q_table[str(state), str(action)] > max_value:
                     max_action = action
                     max_value = q_table[str(state), str(action)]
@@ -271,7 +268,7 @@ class KeizarEnv(gym.Env):
         """
         new_state = copy(state)
         reward = 0
-
+        print(move)
         # implement move
         [fx, fy, tx, ty, _] = move
         piece_to_move = copy(new_state[fx, fy])
@@ -333,7 +330,7 @@ class KeizarEnv(gym.Env):
         reward = 0
         if isCapture == 1:
             reward += CAPTURE_MOVE
-        if (tx, ty) == (3, 4):
+        if (tx, ty) == (4, 3):
             reward += KEIZER_MOVE
             if player == WHITE:
                 self.white_keizar += 1
@@ -343,7 +340,7 @@ class KeizarEnv(gym.Env):
                 self.white_keizar = 0
         if self.is_win() == player:
             reward += WIN_REWARD
-        if not isCapture and not (tx, ty) == (3, 4):
+        if not isCapture and not (tx, ty) == (4, 3):
             reward += SIMPLE_MOVE
         return reward
 

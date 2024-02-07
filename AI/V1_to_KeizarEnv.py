@@ -212,13 +212,13 @@ class KeizarEnv(gym.Env):
         q_table = self.Q if isSelf else self.opponent_Q
         greedy_level = 0.75
         rand = np.random.random()
-        max_action = []
+        max_action = None
         if actions is None:
-            return []
+            return None
         if rand > greedy_level and eps:
             max_action = actions[np.random.choice(actions.shape[0])]
         else:
-            max_value = 0
+            max_value = -1
             for action in actions:
                 if (str(state), str(action)) not in q_table.keys():
                     q_table[str(state), str(action)] = 0
@@ -268,7 +268,6 @@ class KeizarEnv(gym.Env):
         """
         new_state = copy(state)
         reward = 0
-        print(move)
         # implement move
         [fx, fy, tx, ty, _] = move
         piece_to_move = copy(new_state[fx, fy])

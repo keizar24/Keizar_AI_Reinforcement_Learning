@@ -6,7 +6,7 @@ import requests
 import json
 
 from AI.GameAI import GameAI
-from AI.connectServer import get_board, parseStr
+from Server.AI.connectServer import get_board, parseStr
 
 app = Flask(__name__)
 

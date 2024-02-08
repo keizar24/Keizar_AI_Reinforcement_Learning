@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from flask import Flask, request, jsonify
 import requests
@@ -9,6 +11,8 @@ from AI.connectServer import get_board, parseStr
 app = Flask(__name__)
 
 session = requests.Session()
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 @app.route('/')
@@ -42,14 +46,11 @@ def refactor_board(white_list, black_list):
     cur_board = get_board()
     for i in range(8):
         for j in range(8):
-            if cur_board[i, j] == 0:
-                cur_board[i, j] = 6
-            cur_board[i, j] %= 10
+            cur_board[i, j] = 0
     for [x, y] in white_list:
-        cur_board[x, y] += 10
+        cur_board[x, y] = 1
     for [x, y] in black_list:
-        cur_board[x, y] += 20
-    print(cur_board)
+        cur_board[x, y] = 2
     return np.array(cur_board)
 
 
@@ -58,19 +59,20 @@ def response_best_move(player):
     if request.content_type != 'application/json':
         return jsonify({"error": "Invalid Content-Type. Please use 'application/json'."}), 400
 
-    ai = GameAI('../q_table.pkl-{}'.format(player.upper()))
-    print('q_table.pkl-{}'.format(player.upper()))
+    ai = GameAI("../AI/q_table.pkl-{}".format(player))
     # Assuming JSON data is sent
     data = request.get_json()
     moves = data.get('move')
     white_pieces = data.get('white_pieces')
     black_pieces = data.get('black_pieces')
-    print(black_pieces, white_pieces, moves)
+    # print(black_pieces, white_pieces, moves)
     state = refactor_board(white_pieces, black_pieces)
     actions = []
     for (fx, fy, tx, ty, isCapture) in moves:
         isCapture = 1 if isCapture else 0
         actions.append((fx, fy, tx, ty, isCapture))
+    if not actions:
+        print(state)
     # pieces: [6,1]
     # move: [1,2,1,3,True]
 

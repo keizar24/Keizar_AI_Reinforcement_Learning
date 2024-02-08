@@ -2,6 +2,7 @@ import requests
 import json
 import numpy as np
 import ast
+import time
 
 
 def parseLocation(loc):
@@ -24,18 +25,13 @@ def refactor_board(text):
     tiles = parseStr(text)
     for i in range(2):
         for j in range(8):
-            if tiles[i][j] == 0:
-                tiles[i][j] = 6
-            tiles[i][j] += 10
+            tiles[i][j] = 1
     for i in range(2, 6):
         for j in range(8):
-            if tiles[i][j] == 0:
-                tiles[i][j] = 6
+            tiles[i][j] = 0
     for i in range(6, 8):
         for j in range(8):
-            if tiles[i][j] == 0:
-                tiles[i][j] = 6
-            tiles[i][j] += 20
+            tiles[i][j] = 2
 
     return tiles
 
@@ -67,14 +63,16 @@ def test_server():
 
 
 def get_move(state, player, type='train'):
-    url = f'http://192.168.1.130:10202/moves/{player}' \
-        if type == 'train' else f'http://192.168.1.130:10202/moves{player}'  # TODO: new url for testing
+    time.sleep(0.005)
+    url = f'http://192.168.17.1:10202/moves/{player}' \
+        if type == 'train' else f'http://192.168.17.1:10202/moves{player}'  # TODO: new url for testing
 
     data = {
         'board': state.tolist()
     }
 
     response = session.post(url, json=data, headers={'Content-Type': 'application/json'})
+    # print("{}: {}".format(player, len(parseJson(response.text))))
     return parseJson(response.text)
 
 
@@ -85,4 +83,3 @@ def get_board(seed=0):
 
     board = refactor_board(response.text)
     return np.array(board)
-

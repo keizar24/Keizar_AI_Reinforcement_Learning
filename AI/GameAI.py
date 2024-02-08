@@ -28,16 +28,19 @@ class GameAI:
     def decide_action(self, state, actions):
         # Extract states from the q_table keys directly
         states = [s for (s, _) in self.q_table.keys()]
-        print(states[0:5])
-        state_actions = [a for (s, a) in self.q_table.keys()]
-        state = str(state)
+        state = self.encode_state(state)
+        print(state)
+        state_actions = [a for (s, a) in self.q_table.keys() if s == state]
+        print(state_actions)
+        # get_second_move = [s for s in states if ]
+        # print("second move: {}".format(get_second_move))
         action = None
         # Check if state is in states directly, without using .any()
         if state in states:
             max = -10000
             # If state is found, choose the action with the highest Q-value for this state
             for a in actions:
-                str_a = "[" + " ".join(str(x) for x in a) + "]"
+                str_a = self.encode_action(a)
                 if (state, str_a) in self.q_table:
                     reward = self.q_table[(state, str_a)]
                     if reward > max:
@@ -52,5 +55,22 @@ class GameAI:
             action = random.choice(actions)
             print("haven't seen this state, return random")
         return action
+
+    @staticmethod
+    def encode_state(state):
+        string = ""
+        for i in range(8):
+            for j in range(8):
+                string += str(state[i][j])
+        return string
+
+    @staticmethod
+    def encode_action(action):
+        string = ""
+        if action is None:
+            return string
+        for i in range(5):
+            string += str(action[i])
+        return string
 
     # Add methods to update and use the Q-table as needed for your game AI.

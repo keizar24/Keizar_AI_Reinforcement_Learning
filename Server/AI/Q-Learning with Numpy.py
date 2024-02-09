@@ -74,7 +74,7 @@ def adversarial_training():
     #     # new training
     #     training(opponent_Q=white_q_table, player=BLACK, epis=i)
     #
-    #     black_q_table = GameAI('q_table.pkl-BLACK').q_table
+    #     black_q_table = GameAI('q_table.pkl-black').q_table
 
 
 if __name__ == '__main__':

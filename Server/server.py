@@ -31,8 +31,8 @@ def request_move(player):
     # get the move from the kotlin server
 
     # set up the url
-    url = f'http://127.0.0.1:49152/moves/{player.lower()}' \
-        if type == 'train' else f'http://127.0.0.1:49152/moves/{player.lower()}'  # TODO: new url for testing
+    url = f'http://localhost:4392/moves/{player.lower()}' \
+        if type == 'train' else f'http://localhost:4392/moves/{player.lower()}'  # TODO: new url for testing
 
     # return f'got data, {state}'
 

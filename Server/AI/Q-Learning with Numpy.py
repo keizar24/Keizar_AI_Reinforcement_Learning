@@ -40,17 +40,17 @@ def training(opponent_Q=None, player=WHITE, epis=0):
         total_rewards[i] = score
         eps = eps - 2 / n_games if eps > 0.01 else 0.01
     # plot learning curve
-    mean_rewards = np.zeros(n_games)
-    for t in range(n_games):
-        mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
-    plt.plot(mean_rewards)
-    # Directory where the file will be saved
-    directory = './training_pictures'
-    # Check if the directory exists
-    if not os.path.exists(directory):
-        # If it does not exist, create it
-        os.makedirs(directory)
-    plt.savefig('./training_pictures/q-learning-{}-{}.png'.format(player, epis))
+    # mean_rewards = np.zeros(n_games)
+    # for t in range(n_games):
+    #     mean_rewards[t] = np.mean(total_rewards[max(0, t - 50):(t + 1)])
+    # plt.plot(mean_rewards)
+    # # Directory where the file will be saved
+    # directory = './training_pictures'
+    # # Check if the directory exists
+    # if not os.path.exists(directory):
+    #     # If it does not exist, create it
+    #     os.makedirs(directory)
+    # plt.savefig('./training_pictures/q-learning-{}-{}.png'.format(player, epis))
 
 
 def save_q_table(q_table, player):

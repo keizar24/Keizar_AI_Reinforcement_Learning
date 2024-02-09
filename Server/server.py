@@ -86,4 +86,4 @@ def response_best_move(player):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=10202)
+    app.run(debug=True, host="0.0.0.0", port=4393)

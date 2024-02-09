@@ -1,6 +1,5 @@
 from copy import copy
 
-from Server.AI.connectServer import get_move, get_board
 import numpy as np
 
 SIMPLE_MOVE = 1

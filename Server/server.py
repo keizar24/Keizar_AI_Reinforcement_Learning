@@ -59,7 +59,7 @@ def response_best_move(player):
     if request.content_type != 'application/json':
         return jsonify({"error": "Invalid Content-Type. Please use 'application/json'."}), 400
 
-    ai = GameAI("../AI/q_table.pkl-{}".format(player))
+    ai = GameAI("./AI/q_table.pkl-{}".format(player))
     # Assuming JSON data is sent
     data = request.get_json()
     moves = data.get('move')

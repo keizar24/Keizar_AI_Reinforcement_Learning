@@ -57,14 +57,14 @@ BLACK = "BLACK"
 
 
 def test_server():
-    url = 'http://127.0.0.1:5000/'
+    url = 'http://localhost:4393/'
     response = session.get(url)
     return response.text
 
 
 def get_move(state, player, type='train'):
     time.sleep(0.005)
-    url = f'http://192.168.17.1:10202/moves/{player}' \
+    url = f'http://localhost:4393/moves/{player}' \
         if type == 'train' else f'http://192.168.17.1:10202/moves{player}'  # TODO: new url for testing
 
     data = {
@@ -77,7 +77,7 @@ def get_move(state, player, type='train'):
 
 
 def get_board(seed=0):
-    url = f'http://127.0.0.1:49152/board/{seed}'
+    url = f'http://localhost:4392/board/{seed}'
 
     response = session.put(url, headers={'Content-Type': 'application/json'})
 
